@@ -27,8 +27,20 @@ namespace Sample.AzureFunction
                         x.AddConsumer<SubmitOrderConsumer>();
                         x.AddConsumer<AuditOrderConsumer>();
 
-                        x.UsingAzureServiceBus((context, cfg) => { cfg.Host(hostContext.Configuration["ServiceBusConnection"]); });
-
+                        x.UsingAzureServiceBus((ctx, cfg) =>
+                        {
+                            cfg.Host(hostContext.Configuration["ServiceBusConnection"]);
+                            cfg.Publish<SubmitOrder>(p =>
+                            {
+                                p.CreateTopicOptions.Name = "orders";
+                                p.CreateTopicOptions.EnablePartitioning = true;
+                            });
+                            cfg.SubscriptionEndpoint<SubmitOrder>("submit-order", s =>
+                            {
+                                s.ConfigureConsumer<SubmitOrderConsumer>(ctx);
+                            });
+                            cfg.ConfigureEndpoints(ctx);
+                        });
                         x.AddRider(r =>
                         {
                             r.UsingEventHub((context, cfg) =>

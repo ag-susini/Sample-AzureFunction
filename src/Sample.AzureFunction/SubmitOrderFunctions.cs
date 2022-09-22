@@ -7,7 +7,8 @@ namespace Sample.AzureFunction
 {
     public class SubmitOrderFunctions
     {
-        const string SubmitOrderQueueName = "submit-order";
+        const string SubmitOrderTopicName = "orders";
+        const string SubmitOrderSubscriptionName = "submit-order";
         readonly IReceiveEndpointDispatcher<SubmitOrderConsumer> _dispatcher;
 
         public SubmitOrderFunctions(IReceiveEndpointDispatcher<SubmitOrderConsumer> dispatcher)
@@ -17,7 +18,7 @@ namespace Sample.AzureFunction
         }
 
         [Function("SubmitOrder")]
-        public Task SubmitOrderAsync([ServiceBusTrigger(SubmitOrderQueueName, Connection = "ServiceBusConnection")]
+        public Task SubmitOrderAsync([ServiceBusTrigger(SubmitOrderTopicName, SubmitOrderSubscriptionName, Connection = "ServiceBusConnection")]
             byte[] body, FunctionContext context)
         {
             return _dispatcher.Dispatch(context, body);
